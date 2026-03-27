@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sea Level Rise Impact Dashboard</title>
+    <link rel="stylesheet" href="sea.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="dashboard.js" defer></script>
+</head>
+<body>
+    <div id="loginOverlay" class="overlay">
+        <div class="login-modal">
+            <div class="login-header">
+                <div class="login-icon">🌊</div>
+                <h1>Sea Level Rise Impact Dashboard</h1>
+                <p>Select your role to continue</p>
+            </div>
+            <div class="login-buttons">
+                <button class="login-btn civilian-btn" onclick="selectRole('civilian')">
+                    <span class="btn-icon">👤</span>
+                    <span class="btn-text">
+                        <strong>Login as Civilian</strong>
+                    </span>
+                </button>
+                <button class="login-btn govt-btn" onclick="selectRole('government')">
+                    <span class="btn-icon">🏛️</span>
+                    <span class="btn-text">
+                        <strong>Login as Government Official</strong>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard hidden">
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="logo">
+                    <span class="logo-icon">🌊</span>
+                    <span class="logo-text">SLR Dashboard</span>
+                </div>
+            </div>
+            <div class="nav-center">
+                <div class="filter-group">
+                    <label for="citySelect">City</label>
+                    <select id="citySelect">
+                        <option value="mumbai">Mumbai</option>
+                        <option value="chennai">Chennai</option>
+                        <option value="kolkata">Kolkata</option>
+                        <option value="miami">Miami</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="yearSelect">Year</label>
+                    <select id="yearSelect">
+                        <option value="2025">2025</option>
+                        <option value="2030">2030</option>
+                        <option value="2050">2050</option>
+                        <option value="2100">2100</option>
+                    </select>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="user-info">
+                    <span id="roleDisplay" class="role-badge">Civilian</span>
+                    <button class="logout-btn" onclick="logout()">
+                        <span>Logout</span>
+                        <span class="logout-icon">↩</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <aside id="sidebar" class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="home">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Home</span>
+                </a>
+                <a href="#" class="nav-item" data-section="zoning">
+                    <span class="nav-icon">🗺️</span>
+                    <span class="nav-label">Coastal Zoning</span>
+                </a>
+                <a href="#" class="nav-item" data-section="reports">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Historical Reports</span>
+                </a>
+                <br> <br>
+                <button class="menu-toggle" onclick="toggleTheme()" title="Switch Theme">
+                    <span id="themeIcon">     🌙</span>
+                </button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div id="loadingIndicator" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Loading data...</p>
+            </div>
+
+            <section id="homeSection" class="content-section">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2>Dashboard Overview</h2>
+                        <p id="lastUpdated">Last updated: --</p>
+                    </div>
+                    <button id="downloadReportBtn" class="logout-btn" style="background-color: #023e8a; color: white; border: none; padding: 10px 20px;">
+                        <span>📥 Download Summary</span>
+                    </button>
+                </div>
+                <div class="cards-grid civilian-cards">
+                    <div class="card risk-card">
+                        <div class="card-icon">⚠️</div>
+                        <div class="card-content">
+                            <h3>Risk Index</h3>
+                            <p class="card-value" id="riskIndex">--</p>
+                            <p class="card-label" id="riskLevel">Loading...</p>
+                        </div>
+                        <div class="card-indicator" id="riskIndicator"></div>
+                    </div>
+                    <div class="card population-card">
+                        <div class="card-icon">👥</div>
+                        <div class="card-content">
+                            <h3>Population at Risk</h3>
+                            <p class="card-value" id="population">--</p>
+                            <p class="card-label">People in affected zones</p>
+                        </div>
+                    </div>
+                    <div class="card slr-card">
+                        <div class="card-icon">📈</div>
+                        <div class="card-content">
+                            <h3>Sea Level Rise</h3>
+                            <p class="card-value" id="seaLevelRise">--</p>
+                            <p class="card-label">Projected increase</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cards-grid govt-cards hidden" id="govtCards">
+                    <div class="card evacuation-card">
+                        <div class="card-icon">🚨</div>
+                        <div class="card-content">
+                            <h3>Evacuation Plan</h3>
+                            <p class="card-value" id="evacuationStatus">--</p>
+                            <p class="card-label" id="evacuationDetails">Status details</p>
+                        </div>
+                    </div>
+                    <div class="card fishermen-card">
+                        <div class="card-icon">🎣</div>
+                        <div class="card-content">
+                            <h3>Fishermen Affected</h3>
+                            <p class="card-value" id="fishermenAffected">--</p>
+                            <p class="card-label">Livelihoods impacted</p>
+                        </div>
+                    </div>
+                    <div class="card displaced-card">
+                        <div class="card-icon">🏚️</div>
+                        <div class="card-content">
+                            <h3>Population Displaced</h3>
+                            <p class="card-value" id="populationDisplaced">--</p>
+                            <p class="card-label">Requiring relocation</p>
+                        </div>
+                    </div>
+                    <div class="card economic-card">
+                        <div class="card-icon">💰</div>
+                        <div class="card-content">
+                            <h3>Economic Loss</h3>
+                            <p class="card-value" id="economicLoss">--</p>
+                            <p class="card-label">Projected impact</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3>Sea Level Rise Projections</h3>
+                        <p>Comparative analysis across years</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="slrChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="zoningSection" class="content-section hidden">
+                <div class="section-header">
+                    <h2>Coastal Zoning & Regulations</h2>
+                    <p>Interactive map and zoning restrictions for <span class="current-city-name">Mumbai</span></p>
+                </div>
+                
+                <div class="zoning-layout">
+                    <div class="map-container">
+                        <iframe 
+                            id="googleMap"
+                            width="100%" 
+                            height="450" 
+                            style="border:0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120638.19694086653!2d72.74415891392667!3d19.110052345592864!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d648c69!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1715424000000!5m2!1sen!2sin">
+                        </iframe>
+                    </div>
+
+                    <div class="zoning-info-panel">
+                        <h3>Zone Regulations</h3>
+                        <div class="zone-details">
+                            <div class="zone-item red-border">
+                                <strong>CRZ-I (Ecologically Sensitive)</strong>
+                                <p>No construction allowed within 500m of High Tide Line.</p>
+                            </div>
+                            <div class="zone-item orange-border">
+                                <strong>CRZ-II (Developed Areas)</strong>
+                                <p>Strict limits on vertical expansion and landward construction.</p>
+                            </div>
+                            <div class="zone-item green-border">
+                                <strong>CRZ-III (Rural Areas)</strong>
+                                <p>Regulated agriculture and limited seasonal tourism structures.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="reportsSection" class="content-section hidden">
+                <div class="section-header">
+                    <h2>Historical Data & Reports</h2>
+                    <p>Select a report to view summarized impact data</p>
+                </div>
+
+                <div class="reports-container">
+                    <div class="reports-list">
+                        <div class="report-item" onclick="showReportDetails('2024')">
+                            <span class="report-icon">~📄~</span>
+                            <div class="report-info">
+                                <h4>Annual Assessment 2024</h4>
+                                <p>Comprehensive yearly review</p>
+                            </div>
+                            <span class="report-date">View Details</span>
+                        </div>
+                        <div class="report-item" onclick="showReportDetails('2023')">
+                            <span class="report-icon">~📄~</span>
+                            <div class="report-info">
+                                <h4>Annual Assessment 2023</h4>
+                                <p>Historical flood line analysis</p>
+                            </div>
+                            <span class="report-date">View Details</span>
+                        </div>
+                        <div class="report-item" onclick="showReportDetails('2022')">
+                            <span class="report-icon">~📄~</span>
+                            <div class="report-info">
+                                <h4>Emergency Protocol Review</h4>
+                                <p>Evaluation of shelter placements</p>
+                            </div>
+                            <span class="report-date">View Details</span>
+                        </div>
+                    </div>
+
+                    <div id="reportDetailsPanel" class="report-details-view">
+                        <div class="empty-state">
+                            <p>Click a report on the left to view the summary information here.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
