@@ -133,7 +133,7 @@ body { background: var(--bg-main); color: var(--text); transition: 0.3s; }
 }
 
 .zone-item {
-    background: white;
+    background: var(--bg-card);
     padding: 3px;
     margin-bottom: 5px;
     border-radius: 8px;
@@ -144,7 +144,7 @@ body { background: var(--bg-main); color: var(--text); transition: 0.3s; }
 .orange-border { border-left-color: #ffa500; }
 
 .report-details-view {
-    background: #feffff;
+    background: var(--bg-card);
     padding: 15px;
     border-radius: 12px;
     border: 1px solid #ddd;
